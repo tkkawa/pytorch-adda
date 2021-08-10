@@ -95,6 +95,8 @@ def eval_src(encoder, classifier, data_loader):
         pred_cls = preds.data.max(1)[1]
         acc += pred_cls.eq(labels.data).cpu().sum()
 
+    loss = float(loss)
+    acc = float(acc)
     loss /= len(data_loader)
     acc /= len(data_loader.dataset)
 
