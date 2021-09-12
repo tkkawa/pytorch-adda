@@ -7,44 +7,45 @@ from utils import make_variable
 from utils import get_data_loader, init_model, init_random_seed
 from models import Discriminator, LeNetClassifier, LeNetEncoder
 import params
+import cv2
+from PIL import Image
+import numpy as np
+from IPython.display import Image,display_png
 
-def eval_target(encoder, classifier, data_loader):
-    #encoder.eval()
-    #classifier.eval()
-    res = 0
 
-    #classes = ['cat', 'fox', 'gorilla', 'raccoon']
+def eval_target(encoder, classifier, data_loader):   
     for (images, labels) in data_loader:
-        #imshow(torchvision.utils.make_grid(images))
         images = make_variable(images, volatile=True)
-        labels = make_variable(labels).squeeze_()
-        print(labels)
         preds = classifier(encoder(images))
-        _, predicted = torch.max(preds, 1)
-        print(predicted)
-        if labels == predicted:
-            res += 1
-        print("---------")
+        preds = preds.to('cpu').detach().numpy().copy()[0]
+        preds_idx = np.argmax(preds)
+        preds_sort = preds.argsort()
+        preds_first_idx = preds_sort[-1]
+        preds_second_idx = preds_sort[-2]
+        preds_third_idx = preds_sort[-3]
 
-    print('acc', res / len(data_loader)
+        pred_animal = classes[preds_first_idx]
+        print('First : ', pred_animal)
+        #print('Second : ', classes[preds_second_idx])
+        #print('Third : ', classes[preds_third_idx])
+        display_png(Image("datasets2/show_image/"+pred_animal+".png"))
+        #img = Image.open("datasets2/show_image/"+pred_animal+".png")
+        #img.show()
+
+classes = ['cat', 'fox', 'gorilla', 'raccoon']
+
+src_encoder_path = 'snapshots/ADDA-source-encoder-final.pt'
+src_classifier_path = 'snapshots/ADDA-source-classifier-final.pt'
+tgt_encoder_path = 'snapshots/ADDA-target-encoder-400.pt'
 
 src_encoder = init_model(net=LeNetEncoder(),
-                             restore=params.src_encoder_restore)
+                             restore=src_encoder_path)
 src_classifier = init_model(net=LeNetClassifier(),
-                            restore=params.src_classifier_restore)
+                            restore=src_classifier_path)
 tgt_encoder = init_model(net=LeNetEncoder(),
-                             restore=params.tgt_encoder_restore)
+                             restore=tgt_encoder_path)
+
 transform = transforms.Compose([transforms.Grayscale(num_output_channels=1), transforms.Resize((100, 100)), transforms.ToTensor(), transforms.Normalize(mean=(0.5,), std=(0.5,))])
-tgt_dataset = ImageFolder("datasets2/human_dataset/resized", transform) # ここは適当にラベル付きのデータを用意する
-
-train_ratio = 0.8
-tgt_train_size = int(train_ratio * len(tgt_dataset))
-tgt_val_size  = len(tgt_dataset) - tgt_train_size   
-tgt_data_size  = {"train":tgt_train_size, "val":tgt_val_size}
-print(tgt_data_size)
-
-tgt_data_train, tgt_data_val = random_split(tgt_dataset, [tgt_train_size, tgt_val_size])
-tgt_data_loader = DataLoader(tgt_data_train, batch_size=1, shuffle=True)
-tgt_data_loader_eval = DataLoader(tgt_data_val, batch_size=1, shuffle=True)
-eval_target(src_encoder, src_classifier, tgt_data_loader_eval)
+tgt_dataset2 = ImageFolder("datasets2/test_data", transform)
+tgt_data_loader_eval = DataLoader(tgt_dataset2, batch_size=1, shuffle=True)
 eval_target(tgt_encoder, src_classifier, tgt_data_loader_eval)
