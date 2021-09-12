@@ -32,8 +32,10 @@ src_encoder = init_model(net=LeNetEncoder(),
                              restore=params.src_encoder_restore)
 src_classifier = init_model(net=LeNetClassifier(),
                             restore=params.src_classifier_restore)
-transform = transforms.Compose([transforms.Grayscale(num_output_channels=1), transforms.Resize((28, 28)), transforms.ToTensor(), transforms.Normalize(mean=(0.5,), std=(0.5,))])
-tgt_dataset = ImageFolder("datasets2/human_dataset/resized", transform)
+tgt_encoder = init_model(net=LeNetEncoder(),
+                             restore=params.tgt_encoder_restore)
+transform = transforms.Compose([transforms.Grayscale(num_output_channels=1), transforms.Resize((100, 100)), transforms.ToTensor(), transforms.Normalize(mean=(0.5,), std=(0.5,))])
+tgt_dataset = ImageFolder("datasets2/human_dataset/resized", transform) # ここは適当にラベル付きのデータを用意する
 
 train_ratio = 0.8
 tgt_train_size = int(train_ratio * len(tgt_dataset))
@@ -45,3 +47,4 @@ tgt_data_train, tgt_data_val = random_split(tgt_dataset, [tgt_train_size, tgt_va
 tgt_data_loader = DataLoader(tgt_data_train, batch_size=1, shuffle=True)
 tgt_data_loader_eval = DataLoader(tgt_data_val, batch_size=1, shuffle=True)
 eval_target(src_encoder, src_classifier, tgt_data_loader_eval)
+eval_target(tgt_encoder, src_classifier, tgt_data_loader_eval)

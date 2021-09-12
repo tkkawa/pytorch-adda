@@ -17,7 +17,7 @@ if __name__ == '__main__':
     #tgt_data_loader_eval = get_data_loader(params.tgt_dataset, train=False)
 
     # Dataset を作成する。
-    transform = transforms.Compose([transforms.Grayscale(num_output_channels=1), transforms.Resize((28, 28)), transforms.ToTensor(), transforms.Normalize(mean=(0.5,), std=(0.5,))])
+    transform = transforms.Compose([transforms.Grayscale(num_output_channels=1), transforms.Resize((100, 100)), transforms.ToTensor(), transforms.Normalize(mean=(0.5,), std=(0.5,))])
     src_dataset = ImageFolder("datasets2/animal_face_dataset/resized", transform)
     tgt_dataset = ImageFolder("datasets2/human_dataset/resized", transform)
     train_ratio = 0.8
